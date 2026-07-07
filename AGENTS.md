@@ -117,3 +117,19 @@ Hook scripts in `src/hooks/` are standalone Node.js scripts (no iii-sdk import).
 - 12 hooks, 4 skills
 - 50+ iii functions
 - 950+ tests
+
+## Cursor Cloud specific instructions
+
+### Services
+- **iii-engine** (native binary `~/.local/bin/iii`, v0.11.2): the runtime bus on `ws://localhost:49134`; also serves REST on `:3111` and streams on `:3112`. `~/.local/bin` is on PATH in login shells.
+- **agentmemory worker**: the Node process registering all `mem::*`/`api::*` functions. `iii-config.yaml` includes an `iii-exec` worker that auto-spawns the built worker (`node dist/index.mjs`), so `iii --config iii-config.yaml` runs the engine *and* worker together.
+- **web viewer**: served by the worker on `:3113` (REST port + 2).
+
+### Non-obvious setup/run caveats
+- `npm install` fails with `ERESOLVE` (peer conflict: `@anthropic-ai/claude-agent-sdk` wants `@anthropic-ai/sdk>=0.93` while root pins `^0.39`). Install with `npm install --legacy-peer-deps`. The update script handles this.
+- You MUST run `npm run build` before starting the engine, because `iii-config.yaml`'s `iii-exec` runs `node dist/index.mjs`. Build is intentionally NOT in the update script (build commands are excluded there); run it yourself after startup.
+- Start the full app (engine + worker + viewer) with: `iii --config iii-config.yaml` (run from repo root; writes state to `./data/`). Then REST is at `http://127.0.0.1:3111/agentmemory/*` and the viewer at `http://localhost:3113`.
+- `npm run dev` (tsx, hot reload) starts ONLY the worker and expects an engine already listening on `:49134`. Do NOT run it alongside `iii --config iii-config.yaml`, which already spawns a worker via `iii-exec` — two workers double-register the same function ids.
+- No API keys are required: with no LLM/embedding keys it degrades to noop compression + BM25-only search (fully functional for save/recall).
+- `npm test` mocks `iii-sdk` and needs no running services. `npm run test:integration` requires a live engine + worker.
+- Quick health/hello-world check once running: `curl -s localhost:3111/agentmemory/health`, then `POST /agentmemory/remember` (`{"content":"..."}`) and `POST /agentmemory/search` (`{"query":"..."}`).
