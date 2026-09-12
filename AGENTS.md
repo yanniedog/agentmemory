@@ -123,7 +123,7 @@ Hook scripts in `src/hooks/` are standalone Node.js scripts (no iii-sdk import).
 ### Services
 - **iii-engine** (native binary `~/.local/bin/iii`, v0.11.2): the runtime bus on `ws://localhost:49134`; also serves REST on `:3111` and streams on `:3112`. `~/.local/bin` is on PATH in login shells.
 - **agentmemory worker**: the Node process registering all `mem::*`/`api::*` functions. `iii-config.yaml` includes an `iii-exec` worker that auto-spawns the built worker (`node dist/index.mjs`), so `iii --config iii-config.yaml` runs the engine *and* worker together.
-- **web viewer**: starts with the worker, normally on `:3113` (REST port + 2). If occupied, startup tries `:3114` through `:3122`; it can skip the viewer if every port is busy. Read `viewerPort` from `/agentmemory/health` or the worker startup output for the actual port.
+- **web viewer**: starts with the worker, normally on `:3113` (REST port + 2). If occupied, startup tries `:3114` through `:3123`; it can skip the viewer if every port is busy. Read `viewerPort` from `/agentmemory/health` or the worker startup output for the actual port.
 
 ### Non-obvious setup/run caveats
 - `npm install` fails with `ERESOLVE` (peer conflict: `@anthropic-ai/claude-agent-sdk` wants `@anthropic-ai/sdk>=0.93` while root pins `^0.39`). Install with `npm install --legacy-peer-deps`. The checked-in CI uses the same legacy-peer-deps option.
